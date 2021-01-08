@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
 import MyChart from "./components/Chart";
 import { fetchCovidAPI } from "./services/CovidService";
+import "./App.css";
+import styled from "styled-components";
 function App() {
   const [data, updateData] = useState([]);
   const [categories, setCategoris] = useState([]);
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState(30);
+  const [date, setDate] = useState("");
 
   async function fetchData() {
     if (count % 30 !== 0) {
+      console.log(count);
       const data = await fetchCovidAPI(count % 30);
       let dataArr = data.covidWithDay;
       dataArr = dataArr.sort((a, b) =>
@@ -23,31 +27,44 @@ function App() {
 
       updateData(updatedData);
       setCategoris(updatedCategories);
+      setDate(data.date);
     }
   }
   useEffect(() => {
-    setCount(count + 1);
+    setCount(Math.abs(count - 1));
     fetchData();
   }, []);
   useEffect(() => {
     const interval = setInterval(() => {
-      setCount(count + 1);
+      if (count - 1 === -1) {
+        setCount(30);
+      } else {
+        setCount(count - 1);
+      }
       fetchData();
-    }, 2000);
+    }, 100);
     return () => {
       window.clearInterval(interval);
     };
   }, [count]);
   return (
-    <div className="app">
-      Covid Global Base By SGN
+    <Container>
+      <p>Covid Global Base By SGN </p>
+      <p> {date}</p>
       <div className="row">
         <div className="mixed-chart">
           <MyChart data={data} categories={categories} type="bar" width="500" />
         </div>
       </div>
-    </div>
+    </Container>
   );
 }
+
+const Container = styled.div`
+  p {
+    text-align: center;
+    font-size: 1.2rem;
+  }
+`;
 
 export default App;
